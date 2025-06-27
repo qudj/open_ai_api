@@ -15,22 +15,34 @@ import (
 var OAIClient = InitAuthClient(&config.Global.AuthHosts.HanHaiHost)
 
 func (c *OpenAIClient) StreamOpenAI(ctx context.Context, param *model.HanHaiRequest, dataChan chan string, errChan chan error, exitChan chan bool) {
-	openaiAPIKey := c.getReqToken()
+	defer func() {
+		exitChan <- true
+	}()
+
 	reqBody, _ := json.Marshal(param)
-	req, err := http.NewRequestWithContext(ctx, "POST", c.host, bytes.NewReader(reqBody))
-	if err != nil {
-		errChan <- err
-		return
+	var err error
+	var req *http.Request
+	var resp *http.Response
+	for i := 0; i < 3; i++ {
+		openaiAPIKey := c.getReqToken()
+		req, err = http.NewRequestWithContext(ctx, "POST", c.host, bytes.NewReader(reqBody))
+		if err != nil {
+			c.nextToken()
+			continue
+		}
+		req.Header.Set("Authorization", "Bearer "+openaiAPIKey)
+		req.Header.Set("Content-Type", "application/json")
+		resp, err = c.client.Do(req)
+		if err != nil {
+			c.nextToken()
+			continue
+		}
 	}
-	req.Header.Set("Authorization", "Bearer "+openaiAPIKey)
-	req.Header.Set("Content-Type", "application/json")
-	resp, err := c.client.Do(req)
 	if err != nil {
 		errChan <- err
 		return
 	}
 	defer resp.Body.Close()
-
 	if param.ResponseMode == "streaming" {
 		buf := make([]byte, 1024)
 		for {
@@ -53,7 +65,6 @@ func (c *OpenAIClient) StreamOpenAI(ctx context.Context, param *model.HanHaiRequ
 		}
 		dataChan <- string(body) // 非流式只发一次
 	}
-	exitChan <- true
 }
 
 type OpenAIClient struct {

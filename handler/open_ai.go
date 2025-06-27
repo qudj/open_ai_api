@@ -36,6 +36,7 @@ func openAiHandler(c *gin.Context) {
 				break
 			}
 			responses.Success.RespData(c, transData)
+			c.Writer.Flush()
 		case <-exitChan:
 			quite = true
 		}
