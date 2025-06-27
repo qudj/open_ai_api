@@ -11,7 +11,8 @@ func RegisterRoutes(r *gin.Engine) {
 	// API分组
 	api := r.Group("/api")
 	{
-		api.POST("/open_ai/", openAiHandler)
+		api.POST("/open_ai", openAiHandler)
+		api.POST("/test_han_hai", testHanHaiHandler)
 	}
 }
 

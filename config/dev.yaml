@@ -1,4 +1,4 @@
 auth_hosts:
   han_hai_host:
-    host: http://appbuilder.ai.ksyun.com/v1/chat-messages
+    host: http://localhost:8080/api/test_han_hai
     tokens: ["dd", "bbb", "ccc"]
