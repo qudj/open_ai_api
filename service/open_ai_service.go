@@ -4,22 +4,15 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"github.com/qudj/open_ai_api/config"
 	"github.com/qudj/open_ai_api/model"
+	"github.com/qudj/open_ai_api/utils"
 	"io"
 	"net/http"
 	"sync"
 )
 
-type OpenAIClient struct {
-	host         string
-	client       *http.Client
-	tokens       []string
-	selIndex     int
-	tokenCount   int
-	nextTokenGap int
-	reqCount     int
-	lock         *sync.Mutex
-}
+var OAIClient = InitAuthClient(&config.Global.AuthHosts.HanHaiHost)
 
 func (c *OpenAIClient) StreamOpenAI(ctx context.Context, param *model.HanHaiRequest, dataChan chan string, errChan chan error) {
 	defer close(dataChan)
@@ -62,6 +55,28 @@ func (c *OpenAIClient) StreamOpenAI(ctx context.Context, param *model.HanHaiRequ
 		}
 		dataChan <- string(body) // 非流式只发一次
 	}
+}
+
+type OpenAIClient struct {
+	host         string
+	client       *http.Client
+	tokens       []string
+	selIndex     int
+	tokenCount   int
+	nextTokenGap int
+	reqCount     int
+	lock         *sync.Mutex
+}
+
+func InitAuthClient(authHost *config.AuthHost) *OpenAIClient {
+	ret := &OpenAIClient{
+		host:         authHost.Host,
+		tokens:       authHost.Tokens,
+		client:       utils.DefaultHttpClient(),
+		tokenCount:   len(authHost.Tokens),
+		nextTokenGap: 50,
+	}
+	return ret
 }
 
 func (c *OpenAIClient) getReqToken() string {

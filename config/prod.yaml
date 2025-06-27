@@ -1,15 +1,4 @@
-host:
-  host_example: http://localhost:8080
-
-db:
-  user_read:
-    host: localhost
-    port: 3306
-    username: root
-    password:
-    database: user
-
-redis:
-  host: localhost
-  port: 6379
-  db: 0
+auth_hosts:
+  han_hai_host:
+    host: http://appbuilder.ai.ksyun.com/v1/chat-messages
+    tokens: ["dd", "bbb", "ccc"]
