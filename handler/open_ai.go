@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"fmt"
+	"errors"
 	"github.com/gin-gonic/gin"
 	"github.com/qudj/open_ai_api/model"
 	"github.com/qudj/open_ai_api/responses"
@@ -22,16 +22,33 @@ func openAiHandler(c *gin.Context) {
 	}
 	dataChan := make(chan string)
 	errChan := make(chan error)
-	go service.OAIClient.StreamOpenAI(c, param, dataChan, errChan)
-
-	for {
+	exitChan := make(chan bool)
+	go service.OAIClient.StreamOpenAI(c, param, dataChan, errChan, exitChan)
+	var quite bool
+	for !quite {
 		select {
 		case err := <-errChan:
-			fmt.Println(err)
-			break
+			responses.RespFromError(c, err)
 		case data := <-dataChan:
-			fmt.Println(data)
-			break
+			transData, err := TransResponse(param.ResponseMode, data)
+			if err != nil {
+				responses.RespFromError(c, err)
+				break
+			}
+			responses.Success.RespData(c, transData)
+		case <-exitChan:
+			quite = true
 		}
 	}
+	close(dataChan)
+	close(errChan)
+	close(exitChan)
+}
+
+func TransResponse(responseMode string, data string) (interface{}, error) {
+	switch responseMode {
+	case "dd":
+
+	}
+	return nil, errors.New("transData error")
 }
