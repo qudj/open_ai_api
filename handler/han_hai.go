@@ -2,7 +2,6 @@ package handler
 
 import (
 	"fmt"
-	"math/rand"
 	"net/http"
 	"time"
 
@@ -90,7 +89,7 @@ func handleStreamResponse(c *gin.Context, req *model.HanHaiRequest) {
 		jsonData, _ := json.Marshal(streamResponse)
 		_, _ = c.Writer.Write([]byte("data: " + string(jsonData) + "\n\n"))
 		c.Writer.Flush()
-		time.Sleep(time.Duration(rand.Intn(100)+50) * time.Millisecond)
+		time.Sleep(200 * time.Millisecond)
 	}
 	_, _ = c.Writer.Write([]byte("data: [DONE]\n\n"))
 	c.Writer.Flush()
